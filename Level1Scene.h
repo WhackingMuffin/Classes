@@ -34,7 +34,7 @@ public:
 	void menuCloseCallback(cocos2d::Ref* pSender);
 	void setViewPointCenter(cocos2d::Point position);
 	// Tower
-	void addTower(Point pos);
+	void addTower(Point pos, std::string towerType);
 	Point tileCoordForPosition(Point position);
 	bool canBuildOnTilePosition(Point pos);
 	Point boundLayerPos(Point newPos);

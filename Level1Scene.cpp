@@ -53,11 +53,10 @@ Level1::~Level1()
 // on "init" you need to initialize your instance
 bool Level1::init()
 {
-	/*
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->onTouchBegan = [&](Touch *touch, Event *unused_event)->bool {return true; };
 	listener->onTouchEnded = CC_CALLBACK_2(Level1::onTouchEnded, this);
-	this->_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);*/
+	this->_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
 	//////////////////////////////
 	// 1. super init first
@@ -80,16 +79,6 @@ bool Level1::init()
 	_background = _tileMap->layerNamed("Background");
 	_Sources = _tileMap->layerNamed("Sources");
 	_Quicksand = _tileMap->layerNamed("Quicksand");
-	// _buildable = _tileMap->layerNamed("buildable");
-
-	// this->addChild(_tileMap, -1);
-	// Add the walls
-	// _walls = _tileMap->layerNamed("Walls");
-
-	// this->addChild(_tileMap, 0);
-
-	// Add the turret bases
-	// _turrets = _tileMap->layerNamed("Turrets");
 
 	this->addChild(_tileMap, -1);
 
@@ -103,19 +92,6 @@ bool Level1::init()
 
 	int x = enemySpawnPoint["x"].asInt();
 	int y = enemySpawnPoint["y"].asInt();
-
-	// _enemyUnit1 = Sprite::create("Enemy1.png");
-	// _enemyUnit1->setPosition(x + _tileMap->getTileSize().width /2, y + _tileMap->getTileSize().height / 2);
-	// _enemyUnit1->setPosition(x,y);
-	// _enemyUnit1->setScale(0.2);
-	// addChild(_enemyUnit1);
-	// setViewPointCenter(_enemyUnit1->getPosition());
-
-
-	/////////////////////////////
-	// 3. add turrets positions to the map so they can
-	//    be added by the player later
-
 
 
 	/////////////////////////////
@@ -336,71 +312,7 @@ bool Level1::canBuildOnTilePosition(Point pos)
 	return buildable;
 }
 
-/*
-bool Level1::canBuildOnTilePosition(Point pos)
-{
-Point towerLoc = this->tileCoordForPosition(pos);
-int tileGid = _background->getTileGIDAt(towerLoc);
-Value props = this->_tileMap->getPropertiesForGID(tileGid);
-if (props.isNull()) {
-return false;
-}
-ValueMap map = props.asValueMap();
-int type_int;
-if (map.size() == 0)
-{
-type_int = 0;
-}
-else
-{
-type_int = map.at("buildable").asInt();
-}
-
-if (type_int == 1)
-{
-return true;
-}
-return false;
-}
-*/
-
-/*
-void Level1::addTower(Point pos)
-{
-DataModel *m = DataModel::getModel();
-
-Tower *target = NULL;
-// WORKING
-Point towerLoc = this->tileCoordForPosition(pos);
-int tileGid = this->_background->tileGIDAt(towerLoc);
-Value props = this->_tileMap->propertiesForGID(tileGid);
-ValueMap map = props.asValueMap();
-// bool buildable = canBuildOnTilePosition(pos);
-
-CCLOG("Preparing to add tower to tile", "%s");
-
-
-
-int type_int = map.at("buildable").asInt();
-// int type_int = map.at("Turrets").asInt();
-if (type_int == 1)
-{
-// Problem here....
-target = MachineGunTower::tower();
-// target->setPosition(Vec2((towerLoc.x * 32) + 16, this->_tileMap->getContentSize().height - (towerLoc.y * 32) - 16));
-target->setPosition(Vec2((towerLoc.x * 20) + 10, this->_tileMap->getContentSize().height - (towerLoc.y * 20) - 10));
-this->addChild(target, 1);
-target->setTag(1);
-m->towers.pushBack(target);
-}
-else
-{
-log("Tile Not Buildable");
-}
-}
-*/
-
-void Level1::addTower(Point pos)
+void Level1::addTower(Point pos, std::string towerType)
 {
 	DataModel *m = DataModel::getModel();
 
@@ -409,41 +321,45 @@ void Level1::addTower(Point pos)
 	Point towerLoc = this->tileCoordForPosition(pos);
 	bool buildable = canBuildOnTilePosition(pos);
 	if ((buildable && _numCollected >= 5))  {
-		_numCollected = _numCollected - 5;
-		_hud->numCollectedChanged(_numCollected);
-		Point towerLoc = this->tileCoordForPosition(pos);
-
-		target = MachineGunTower::tower();
-		target->setPosition(Vec2((towerLoc.x * 20) + 10, this->_tileMap->getContentSize().height - (towerLoc.y * 20) + 150));
-		this->addChild(target, 1);
-		target->setTag(1);
-		m->towers.pushBack(target);
-
+		// Point towerLoc = this->tileCoordForPosition(pos);
+		towerType = towerType.substr(0, 2);
+		CCLOG("TowerType is: %s", towerType.c_str());
+		if (towerType == "MachineGunTower" || towerType == "Ma") {
+			_numCollected = _numCollected - 5;
+			_hud->numCollectedChanged(_numCollected);
+			target = MachineGunTower::tower();
+			target->setPosition(Vec2((towerLoc.x * 20) + 10, this->_tileMap->getContentSize().height - (towerLoc.y * 20) + 150));
+			this->addChild(target, 1);
+			target->setTag(1);
+			m->towers.pushBack(target);
+		}
+		else if(towerType == "FastMachineGunTower" || towerType == "Fa") {
+			_numCollected = _numCollected - 5;
+			_hud->numCollectedChanged(_numCollected);
+			target = FastMachineGunTower::tower();
+			target->setPosition(Vec2((towerLoc.x * 20) + 10, this->_tileMap->getContentSize().height - (towerLoc.y * 20) + 150));
+			this->addChild(target, 1);
+			target->setTag(1);
+			m->towers.pushBack(target);			
+		}
+		else if(towerType == "MissleGunTower" || towerType == "Mi") {
+			_numCollected = _numCollected - 5;
+			_hud->numCollectedChanged(_numCollected);
+			target = MissleGunTower::tower();
+			target->setPosition(Vec2((towerLoc.x * 20) + 10, this->_tileMap->getContentSize().height - (towerLoc.y * 20) + 150));
+			this->addChild(target, 1);
+			target->setTag(1);
+			m->towers.pushBack(target);
+		}
+		else {
+			return;
+		}
 	}
 	else
 	{
 		log("Tile Not Buildable");
 	}
-	/*int tileGid = this->_background->tileGIDAt(towerLoc);
-	Value props = this->_tileMap->propertiesForGID(tileGid);
-	ValueMap map = props.asValueMap();
-
-	int type_int = map.at("buildable").asInt();
-	// int type_int = map.at("Turrets").asInt();
-	if (1 == type_int)
-	{
-	// Problem here....
-	target = MachineGunTower::tower();
-	// target->setPosition(Vec2((towerLoc.x * 32) + 16, this->_tileMap->getContentSize().height - (towerLoc.y * 32) - 16));
-	target->setPosition(Vec2((towerLoc.x * 20) + 10, this->_tileMap->getContentSize().height - (towerLoc.y * 20) - 10));
-	this->addChild(target, 1);
-	target->setTag(1);
-	m->towers.pushBack(target);
-	}
-	else
-	{
-	log("Tile Not Buildable");
-	}*/
+	
 }
 
 Point Level1::boundLayerPos(Point newPos)

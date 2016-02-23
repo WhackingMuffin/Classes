@@ -59,7 +59,7 @@ bool HelloWorld::init()
     // create and initialize a label
 	CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("Accept.mp3");
 	auto label = Label::createWithTTF("Presents", "fonts/ARMYRUST.ttf", 34);
-    
+
     // position the label on the center of the screen
     label->setPosition(Vec2(origin.x + visibleSize.width*0.8,
                             origin.y + visibleSize.height*0.05));

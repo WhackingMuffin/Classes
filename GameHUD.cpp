@@ -1,6 +1,8 @@
 #include "GameHUD.h"
 #include "DataModel.h"
 #include "Level1Scene.h"
+// #include <vector>
+// #include <string>
 
 GameHUD* GameHUD::_sharHUD;
 
@@ -10,7 +12,6 @@ bool GameHUD::init()
 	GameHUD* score;
 
 	//__String *tempscore = __String::createWithFormat("%i", b);
-
 	//	scoreLabel = Label::createWithTTF(tempscore->getCString(), "Helvetica", 12);
 
 	if (!Layer::init())
@@ -40,13 +41,6 @@ bool GameHUD::init()
 	this->addChild(background);
 	//CCTexture2D::setDefaultAlphaPixelFormat(kCCTexture2DPixelFormat_Default);
 
-	// Create 4 turret images for the hud box and add them to the stack
-	Vector<String*> images;
-	images.pushBack(StringMake("GunStill.png"));
-	images.pushBack(StringMake("GunStill.png"));
-	images.pushBack(StringMake("GunStill.png"));
-	images.pushBack(StringMake("GunStill.png"));
-
 	CCLabelTTF* ttf1 = CCLabelTTF::create("COINS = ", "Helvetica", 8,
 		CCSizeMake(245, 32), kCCTextAlignmentCenter);
 
@@ -54,18 +48,22 @@ bool GameHUD::init()
 	//scoreLabel = Label::create(tempscore->getCString(), "Helvetica", 12,
 	//CCSizeMake(245, 32), kCCTextAlignmentCenter);
 
+	Vector<String*> images;
+	
+	images.pushBack(StringMake("MachineGunTurret.png"));
+	images.pushBack(StringMake("FastMachineGunTurret.png"));
+	images.pushBack(StringMake("MissleGunTurret.png"));
 
-	// For each image, increment the offset and add the image.
-	for (int i = 0; i < images.size(); ++i)
-	{
+	for (int i = 0; i < images.size(); ++i) {
 		String* image = images.at(i);
-		auto *sprite = Sprite::create(image->getCString());
+		CCLOG("Placing %s turret", image->getCString());
+		Sprite* sprite = Sprite::create(image->getCString());
+
 		float offsetFraction = ((float)(i + 1)) / (images.size() + 1);
-		sprite->setScale(0.4);
-		// sprite->setPosition(Point(visibleSize.width*(0.28) + origin.x, visibleSize.height*(0.35) + origin.y));
+		sprite->setScale(0.6);
 		sprite->setPosition(Vec2(winSize.width*(offsetFraction / 5), visibleSize.height*(0.15) + origin.y));
-		// sprite->setPosition(Vec2(winSize.width*offsetFraction, winSize.height*0.8));
-		sprite->setContentSize(Size(50, 50)); // MD
+		sprite->setContentSize(Size(50, 50));
+		sprite->setName(image->getCString());
 		this->addChild(sprite);
 		movableSprites.pushBack(sprite);
 	}
@@ -114,11 +112,9 @@ void GameHUD::onEnter()
 bool GameHUD::onTouchBegan(Touch *touch, Event *event)
 {
 	Point touchLocation = this->convertToWorldSpace(this->convertTouchToNodeSpace(touch));
-
-	// Should this star be to a side???
 	Sprite *newSprite = NULL;
 	// for each(Sprite* sprite in this->movableSprites) // MD 
-	for (Sprite *sprite : movableSprites)
+	for (Sprite *sprite : this->movableSprites)
 		//for (int i = 0; i < movableSprites.size(); i++)  // Use this if your VC doesn’t support C++11
 	{
 		// Sprite* sprite = (Sprite*)(movableSprites.at(i));  // Use this if your VC doesn’t support C++11
@@ -134,14 +130,16 @@ bool GameHUD::onTouchBegan(Touch *touch, Event *event)
 			DataModel *m = DataModel::getModel();
 			//m.gestureRecognizer.enabled = NO;
 			selSpriteRange = Sprite::create("Range.png");
-			selSpriteRange->setScale(0.4);
-			// this->addChild(selSpriteRange, -1);
+			selSpriteRange->setScale(0.6);
 			this->addChild(selSpriteRange, -1);
 			selSpriteRange->setPosition(sprite->getPosition());
 
 			newSprite = Sprite::createWithTexture(sprite->getTexture()); //sprite;
+			// newSprite = Sprite::createWithSpriteFrameName(sprite->getName());
 			newSprite->setPosition(sprite->getPosition());
-			newSprite->setScale(0.2);
+			newSprite->setScale(0.6);
+			newSprite->setName(sprite->getName());
+			CCLOG("Setting down %s", sprite->getName());
 			selSprite = newSprite;
 			this->addChild(newSprite);
 		}
@@ -160,7 +158,7 @@ void GameHUD::onTouchMoved(Touch* touch, Event* event)
 
 	Point translation = ccpSub(touchLocation, oldTouchLocation);
 
-	if (selSprite)
+	if (selSprite != NULL)
 	{
 		Point newPos = selSprite->getPosition() + translation;
 		selSprite->setPosition(newPos);
@@ -169,7 +167,8 @@ void GameHUD::onTouchMoved(Touch* touch, Event* event)
 		DataModel *m = DataModel::getModel();
 		// Error here
 		Point touchLocationInGameLayer = m->_gameLayer->convertTouchToNodeSpace(touch);
-
+		
+		// small bool here?
 		BOOL isBuildable = m->_gameLayer->canBuildOnTilePosition(touchLocationInGameLayer);
 		if (isBuildable)
 		{
@@ -189,7 +188,7 @@ void GameHUD::onTouchEnded(Touch* touch, Event* event)
 	Point touchLocation = this->convertTouchToNodeSpace(touch);
 	DataModel *m = DataModel::getModel();
 
-	if (selSprite)
+	if (selSprite != NULL)
 	{
 		Rect backgroundRect = Rect(background->getPositionX(),
 			background->getPositionY(),
@@ -199,12 +198,13 @@ void GameHUD::onTouchEnded(Touch* touch, Event* event)
 		if (!backgroundRect.containsPoint(touchLocation) && m->_gameLayer->canBuildOnTilePosition(touchLocation))
 		{
 			Point touchLocationInGameLayer = m->_gameLayer->convertTouchToNodeSpace(touch);
-			m->_gameLayer->addTower(touchLocationInGameLayer);
+			m->_gameLayer->addTower(touchLocationInGameLayer, this->selSprite->getName());
+			CCLOG("Placed %s Turret.", this->selSprite->getName());
 		}
 
-		this->removeChild(selSprite, true);
+		this->removeChild(this->selSprite, true);
 		selSprite = NULL;
-		this->removeChild(selSpriteRange, true);
+		this->removeChild(this->selSpriteRange, true);
 		selSpriteRange = NULL;
 	}
 

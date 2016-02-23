@@ -3,6 +3,7 @@
 #include "StartMenuScene.h"
 #include "Level1Scene.h"
 #include "SimpleAudioEngine.h"
+#include "DataModel.h"
 
 USING_NS_CC;
 
@@ -34,7 +35,6 @@ bool StartMenu::init()
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-
 	/////////////////////////////
 	// 2. add a menu item with "X" image, which is clicked to quit the program
 	//    you may modify it.
@@ -56,19 +56,6 @@ bool StartMenu::init()
 
 	/////////////////////////////
 	// 3. add your codes below...
-
-	// add a label shows "START"
-	// create and initialize a label
-
-	// auto label = Label::createWithTTF("START", "fonts/Marker Felt.ttf", 24);
-
-	// position the label on the 3/4 the width of the screen 
-	// and at the lower part of the logo
-	/*label->setPosition(Vec2(origin.x + visibleSize.width / 2 + visibleSize.width / 2,
-		origin.y + visibleSize.height / 2));*/
-
-	// add the label as a child to this layer
-	// this->addChild(label, 1);
 
 	// add "TeamNA" splash screen" with logo
 	auto sprite = Sprite::create("Main_Menu.png");
@@ -120,6 +107,39 @@ bool StartMenu::init()
 	//Add music
 	CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic("march.wav", true);
 	CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("Sound1.wav");
+
+	DataModel *m = DataModel::getModel();
+
+
+	// DID YOU KNOW???
+	// Add Did You Know?? headings
+	auto didYouKnowHeadingLabel = Label::createWithTTF("Did You Know???", "fonts/ARMYRUST.ttf", 24);
+
+	// position the label on the center of the screen
+	didYouKnowHeadingLabel->setPosition(Vec2(origin.x + visibleSize.width*0.73,
+		origin.y + visibleSize.height*0.29));
+
+	// change the colour of the label to grey
+	didYouKnowHeadingLabel->setColor(ccc3(81, 23, 117));
+
+	// add the label as a child to this layer
+	this->addChild(didYouKnowHeadingLabel, 3);
+
+	// Add Did You Know?? fact text
+	didYouKnowLabel = Label::createWithTTF("...", "fonts/ARMYRUST.ttf", 11, CCSizeMake(250, 70), TextHAlignment::CENTER, TextVAlignment::CENTER);
+	// position the label on the center of the screen
+	didYouKnowLabel->setPosition(Vec2(origin.x + visibleSize.width*0.73,
+		origin.y + visibleSize.height*0.16));
+	// change the colour of the label to grey
+	didYouKnowLabel->setColor(ccc3(81, 23, 117));
+	// didYouKnowLabel->setString(didYouKnowRandomFact.getCString());
+	// add the label as a child to this layer
+	this->addChild(didYouKnowLabel, 3);
+
+	updateFactTimer(0.1f);
+
+	this->scheduleUpdate();
+
 	return true;
 }
 
@@ -130,6 +150,51 @@ void StartMenu::startButtonPressed()
 	Director::getInstance()->replaceScene(TransitionFade::create(2, loadLevel1));
 }
 
+void StartMenu::updateFactTimer(float dt) {
+	DataModel *m = DataModel::getModel();
+	// Director::getInstance()->
+	// StartMenu* dYKLabel = (StartMenu *)m->waves.at(this->currentLevel);
+
+	// Did You Know??? Fact section
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
+	const char *factArray[] = {
+		"In WW1, trenches were used to stop enemy from advancing.",
+		"By the end of 1914, both sides of the war had built trenches that went from the North Sea and through Belgium and France.",
+		"It is estimated there were about 2,490km of trench lines dug during WW1.",
+		"Most soldiers would spend anywhere from 1 day up to 2 weeks in the trenches at a time.",
+		"Trenches weren't dug in straight lines, but in zig-zag pattern.",
+		"Many soldiers living in the trenches suffered from Trench Foot. Rain and bad weather would flood the trenches making them boggy, muddy and could even block weapons and make it hard to move in battle.",
+		"Trenches typically had an embankment at the top and a barbed wire fence. Often, trenches in World War 1 would be reinforced with sandbags and wooden beams.",
+		"In the trench itself, the bottom was covered with wooden boards called duckboards. These were meant to protect the soldiers’ feet from the water in the trenches to try and prevent Trench Foot.",
+		"The land between the two enemy trench lines was called “No Man’s Land.”  No Man’s Land was sometimes covered with land mines and barbed wire. The distance between enemy trenches was anywhere from 50 to 250 yards apart.",
+		"Trench Digging Method #1: Soldiers would simply dig the trenches straight into the ground – a method known as entrenching. Entrenching was fast, but the soldiers were open to enemy fire while they dug.",
+		"Trench Digging Method #2: A solider would extend a trench on one end. This was called 'sapping' and was a safer method but took a lot longer.",
+		"Trench Digging Method #3: Soldiers would dig a tunnel and then remove the roof to make a trench when done. This 'tunneling' method was the safest and most difficult." ,
+		"The noise and uncomfortable surroundings made it very difficult to sleep in trenches. Soldiers were constantly tired and in danger of falling asleep. This is why the watch shift was kept to 2 hours to avoid men falling asleep while on watch.",
+		"There were several cease fires or truces in the trenches during WWI. In 1914, around Christmas time both the British and German soldiers put down their weapons, came out of their trenches and exchanged gifts and sung carols – ceasing fire to celebrate Christmas. This is now known as the Christmas Truce."
+	};
+	const size_t messages_count = sizeof(factArray) / sizeof(factArray[0]);
+
+	String didYouKnowRandomFact = factArray[rand() % messages_count];
+	didYouKnowLabel->setString(didYouKnowRandomFact.getCString());
+	
+}
+
+void StartMenu::update(float dt)
+{
+	
+}
+
+void StartMenu::onEnter() {
+	CCLayer::onEnter();
+	// CCLog("onEnter");
+	printf("onEnter");
+	this->schedule(schedule_selector(StartMenu::updateFactTimer), 3.0f);
+	this->scheduleUpdate();
+}
+
 void StartMenu::menuCloseCallback(Ref* pSender)
 {
 	Director::getInstance()->end();
@@ -138,5 +203,6 @@ void StartMenu::menuCloseCallback(Ref* pSender)
 	exit(0);
 #endif
 }
+
 //  #endif
 
